@@ -1,6 +1,3 @@
-async def f():
-    await f
-
 class nonlocal(object):
     pass
 
