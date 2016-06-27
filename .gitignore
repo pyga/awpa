@@ -1,2 +1,7 @@
 *.pickle
+*.egg*
+htmlcov*
 .cache
+/.tox
+/build
+/dist

@@ -1,0 +1,7 @@
+[run]
+branch = True
+omit =
+    */*_test.py
+
+[html]
+directory = htmlcov-${TOX_ENVNAME}
