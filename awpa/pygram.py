@@ -23,7 +23,7 @@ class Symbols(object):
 
 
 def load_grammar(which):
-    token = importlib.import_module('awpa.pgen2.gram_{}.token'.format(which))
+    token = importlib.import_module('awpa.gram_{}.token'.format(which))
     if not getattr(token, '_loaded', False):
         token.COMMENT, token.NL = 200, 201
         token.tok_name[200] = 'COMMENT'
