@@ -15,9 +15,6 @@ fallback token code OP, but the parser needs the actual token code.
 # Python imports
 import pickle
 
-# Local imports
-from . import token, tokenize
-
 
 class Grammar(object):
     """Pgen parsing tables conversion class.
@@ -144,6 +141,7 @@ opmap_raw = """
 > GREATER
 = EQUAL
 . DOT
+... ELLIPSIS
 % PERCENT
 ` BACKQUOTE
 { LBRACE
@@ -176,8 +174,15 @@ opmap_raw = """
 -> RARROW
 """
 
-opmap = {}
-for line in opmap_raw.splitlines():
-    if line:
+
+def make_opmap(token):
+    opmap = {}
+    for line in opmap_raw.splitlines():
+        if not line:
+            continue
         op, name = line.split()
-        opmap[op] = getattr(token, name)
+        opval = getattr(token, name, None)
+        if opval is not None:
+            opmap[op] = opval
+
+    return opmap

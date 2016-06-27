@@ -3,18 +3,11 @@
 
 """Export the Python grammar and symbols."""
 
-# Python imports
-import os
+import importlib
 
-# Local imports
-from .pgen2 import token
-from .pgen2 import driver
-from . import pytree
+import pkg_resources
 
-# The grammar file
-_GRAMMAR_FILE = os.path.join(os.path.dirname(__file__), "Grammar.txt")
-_PATTERN_GRAMMAR_FILE = os.path.join(os.path.dirname(__file__),
-                                     "PatternGrammar.txt")
+from .pgen2 import driver, grammar
 
 
 class Symbols(object):
@@ -29,12 +22,18 @@ class Symbols(object):
             setattr(self, name, symbol)
 
 
-python_grammar = driver.load_grammar(_GRAMMAR_FILE)
+def load_grammar(which):
+    token = importlib.import_module('awpa.pgen2.gram_{}.token'.format(which))
+    if not getattr(token, '_loaded', False):
+        token.COMMENT, token.NL = 200, 201
+        token.tok_name[200] = 'COMMENT'
+        token.tok_name[201] = 'NL'
+        token.opmap = grammar.make_opmap(token)
+        token._loaded = True
 
-python_symbols = Symbols(python_grammar)
-
-python_grammar_no_print_statement = python_grammar.copy()
-del python_grammar_no_print_statement.keywords["print"]
-
-pattern_grammar = driver.load_grammar(_PATTERN_GRAMMAR_FILE)
-pattern_symbols = Symbols(pattern_grammar)
+    gram = driver.load_grammar(
+        token,
+        pkg_resources.resource_filename(token.__name__, 'Grammar.txt'))
+    gram.token = token
+    symbols = Symbols(gram)
+    return token, gram, symbols

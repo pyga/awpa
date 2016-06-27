@@ -18,17 +18,6 @@ from io import StringIO
 
 HUGE = 0x7FFFFFFF  # maximum repeat count, default max
 
-_type_reprs = {}
-def type_repr(type_num):
-    global _type_reprs
-    if not _type_reprs:
-        from .pygram import python_symbols
-        # printing tokens is possible but not as useful
-        # from .pgen2 import token // token.__dict__.items():
-        for name, val in python_symbols.__dict__.items():
-            if type(val) == int: _type_reprs[val] = name
-    return _type_reprs.setdefault(type_num, type_num)
-
 class Base(object):
 
     """
@@ -184,7 +173,8 @@ class Base(object):
 
     def leaves(self):
         for child in self.children:
-            yield from child.leaves()
+            for leaf in child.leaves():
+                yield leaf
 
     def depth(self):
         if self.parent is None:
@@ -237,7 +227,7 @@ class Node(Base):
     def __repr__(self):
         """Return a canonical string representation."""
         return "%s(%s, %r)" % (self.__class__.__name__,
-                               type_repr(self.type),
+                               self.type,
                                self.children)
 
     def __unicode__(self):
@@ -263,14 +253,16 @@ class Node(Base):
     def post_order(self):
         """Return a post-order iterator for the tree."""
         for child in self.children:
-            yield from child.post_order()
+            for grandchild in child.post_order():
+                yield grandchild
         yield self
 
     def pre_order(self):
         """Return a pre-order iterator for the tree."""
         yield self
         for child in self.children:
-            yield from child.pre_order()
+            for grandchild in child.pre_order():
+                yield grandchild
 
     def _prefix_getter(self):
         """

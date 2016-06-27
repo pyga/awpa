@@ -10,9 +10,6 @@ how this parsing engine works.
 
 """
 
-# Local imports
-from . import token
-
 class ParseError(Exception):
     """Exception to signal the parser is stuck."""
 
@@ -160,7 +157,7 @@ class Parser(object):
 
     def classify(self, type, value, context):
         """Turn a token into a label.  (Internal)"""
-        if type == token.NAME:
+        if type == self.grammar.token.NAME:
             # Keep a listing of all used names
             self.used_names.add(value)
             # Check for reserved words

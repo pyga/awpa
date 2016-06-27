@@ -2,21 +2,22 @@
 # Licensed to PSF under a Contributor Agreement.
 
 # Pgen imports
-from . import grammar, token, tokenize
+from . import grammar, tokenize
 
 class PgenGrammar(grammar.Grammar):
     pass
 
 class ParserGenerator(object):
 
-    def __init__(self, filename, stream=None):
+    def __init__(self, token, filename, stream=None):
+        self.token = token
         close_stream = None
         if stream is None:
             stream = open(filename)
             close_stream = stream.close
         self.filename = filename
         self.stream = stream
-        self.generator = tokenize.generate_tokens(stream.readline)
+        self.generator = tokenize.generate_tokens(self.token, stream.readline)
         self.gettoken() # Initialize lookahead
         self.dfas, self.startsymbol = self.parse()
         if close_stream is not None:
@@ -59,6 +60,7 @@ class ParserGenerator(object):
         return first
 
     def make_label(self, c, label):
+        t = self.token
         # XXX Maybe this should be a method on a subclass of converter?
         ilabel = len(c.labels)
         if label[0].isalpha():
@@ -73,9 +75,9 @@ class ParserGenerator(object):
                     return ilabel
             else:
                 # A named token (NAME, NUMBER, STRING)
-                itoken = getattr(token, label, None)
+                itoken = getattr(t, label, None)
                 assert isinstance(itoken, int), label
-                assert itoken in token.tok_name, label
+                assert itoken in t.tok_name, label
                 if itoken in c.tokens:
                     return c.tokens[itoken]
                 else:
@@ -91,12 +93,12 @@ class ParserGenerator(object):
                 if value in c.keywords:
                     return c.keywords[value]
                 else:
-                    c.labels.append((token.NAME, value))
+                    c.labels.append((t.NAME, value))
                     c.keywords[value] = ilabel
                     return ilabel
             else:
                 # An operator (any non-numeric token)
-                itoken = grammar.opmap[value] # Fails if unknown token
+                itoken = t.opmap[value] # Fails if unknown token
                 if itoken in c.tokens:
                     return c.tokens[itoken]
                 else:
@@ -143,17 +145,18 @@ class ParserGenerator(object):
         self.first[name] = totalset
 
     def parse(self):
+        t = self.token
         dfas = {}
         startsymbol = None
         # MSTART: (NEWLINE | RULE)* ENDMARKER
-        while self.type != token.ENDMARKER:
-            while self.type == token.NEWLINE:
+        while self.type != t.ENDMARKER:
+            while self.type == t.NEWLINE:
                 self.gettoken()
             # RULE: NAME ':' RHS NEWLINE
-            name = self.expect(token.NAME)
-            self.expect(token.OP, ":")
+            name = self.expect(t.NAME)
+            self.expect(t.OP, ":")
             a, z = self.parse_rhs()
-            self.expect(token.NEWLINE)
+            self.expect(t.NEWLINE)
             #self.dump_nfa(name, a, z)
             dfa = self.make_dfa(a, z)
             #self.dump_dfa(name, dfa)
@@ -264,21 +267,23 @@ class ParserGenerator(object):
             return aa, zz
 
     def parse_alt(self):
+        t = self.token
         # ALT: ITEM+
         a, b = self.parse_item()
         while (self.value in ("(", "[") or
-               self.type in (token.NAME, token.STRING)):
+               self.type in (t.NAME, t.STRING)):
             c, d = self.parse_item()
             b.addarc(c)
             b = d
         return a, b
 
     def parse_item(self):
+        t = self.token
         # ITEM: '[' RHS ']' | ATOM ['+' | '*']
         if self.value == "[":
             self.gettoken()
             a, z = self.parse_rhs()
-            self.expect(token.OP, "]")
+            self.expect(t.OP, "]")
             a.addarc(z)
             return a, z
         else:
@@ -294,13 +299,14 @@ class ParserGenerator(object):
                 return a, a
 
     def parse_atom(self):
+        t = self.token
         # ATOM: '(' RHS ')' | NAME | STRING
         if self.value == "(":
             self.gettoken()
             a, z = self.parse_rhs()
-            self.expect(token.OP, ")")
+            self.expect(t.OP, ")")
             return a, z
-        elif self.type in (token.NAME, token.STRING):
+        elif self.type in (t.NAME, t.STRING):
             a = NFAState()
             z = NFAState()
             a.addarc(z, self.value)
@@ -319,8 +325,9 @@ class ParserGenerator(object):
         return value
 
     def gettoken(self):
+        t = self.token
         tup = next(self.generator)
-        while tup[0] in (tokenize.COMMENT, tokenize.NL):
+        while tup[0] in (t.COMMENT, t.NL):
             tup = next(self.generator)
         self.type, self.value, self.begin, self.end, self.line = tup
         #print token.tok_name[self.type], repr(self.value)
@@ -381,6 +388,6 @@ class DFAState(object):
 
     __hash__ = None # For Py3 compatibility.
 
-def generate_grammar(filename="Grammar.txt"):
-    p = ParserGenerator(filename)
+def generate_grammar(token, filename="Grammar.txt"):
+    p = ParserGenerator(token, filename)
     return p.make_grammar()

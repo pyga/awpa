@@ -23,7 +23,7 @@ import logging
 import sys
 
 # Pgen imports
-from . import grammar, parse, token, tokenize, pgen
+from . import grammar, parse, tokenize, pgen
 
 
 class Driver(object):
@@ -39,6 +39,7 @@ class Driver(object):
         """Parse a series of tokens and return the syntax tree."""
         # XXX Move the prefix computation into a wrapper around tokenize.
         p = parse.Parser(self.grammar, self.convert)
+        t = self.grammar.token
         p.setup()
         lineno = 1
         column = 0
@@ -56,18 +57,18 @@ class Driver(object):
                 if column < s_column:
                     prefix += line_text[column:s_column]
                     column = s_column
-            if type in (tokenize.COMMENT, tokenize.NL):
+            if type in (t.COMMENT, t.NL):
                 prefix += value
                 lineno, column = end
                 if value.endswith("\n"):
                     lineno += 1
                     column = 0
                 continue
-            if type == token.OP:
+            if type == t.OP:
                 type = grammar.opmap[value]
             if debug:
                 self.logger.debug("%s %r (prefix=%r)",
-                                  token.tok_name[type], value, prefix)
+                                  t.tok_name[type], value, prefix)
             if p.addtoken(type, value, (prefix, start)):
                 if debug:
                     self.logger.debug("Stop.")
@@ -102,11 +103,12 @@ class Driver(object):
 
     def parse_string(self, text, debug=False):
         """Parse a string and return the syntax tree."""
-        tokens = tokenize.generate_tokens(io.StringIO(text).readline)
+        tokens = tokenize.generate_tokens(
+            self.grammar.token, io.StringIO(text).readline)
         return self.parse_tokens(tokens, debug)
 
 
-def load_grammar(gt="Grammar.txt", gp=None,
+def load_grammar(token, gt="Grammar.txt", gp=None,
                  save=True, force=False, logger=None):
     """Load the grammar (maybe from a pickle)."""
     if logger is None:
@@ -118,7 +120,7 @@ def load_grammar(gt="Grammar.txt", gp=None,
         gp = head + tail + ".".join(map(str, sys.version_info)) + ".pickle"
     if force or not _newer(gp, gt):
         logger.info("Generating grammar tables from %s", gt)
-        g = pgen.generate_grammar(gt)
+        g = pgen.generate_grammar(token, gt)
         if save:
             logger.info("Writing grammar tables to %s", gp)
             try:
