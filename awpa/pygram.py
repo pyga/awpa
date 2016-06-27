@@ -22,12 +22,20 @@ class Symbols(object):
             setattr(self, name, symbol)
 
 
+def ensure_token(token, name):
+    if getattr(token, name, None) is not None:
+        return
+    new_val = token.N_TOKENS
+    token.N_TOKENS += 1
+    setattr(token, name, new_val)
+    token.tok_name[new_val] = name
+
+
 def load_grammar(which):
     token = importlib.import_module('awpa.gram_{}.token'.format(which))
     if not getattr(token, '_loaded', False):
-        token.COMMENT, token.NL = 200, 201
-        token.tok_name[200] = 'COMMENT'
-        token.tok_name[201] = 'NL'
+        ensure_token(token, 'COMMENT')
+        ensure_token(token, 'NL')
         token.opmap = grammar.make_opmap(token)
         token._loaded = True
 
@@ -35,5 +43,6 @@ def load_grammar(which):
         token,
         pkg_resources.resource_filename(token.__name__, 'Grammar.txt'))
     gram.token = token
+    gram.start = gram.symbol2number.get('file_input', gram.start)
     symbols = Symbols(gram)
     return token, gram, symbols
