@@ -431,7 +431,7 @@ class BasePattern(object):
         return object.__new__(cls)
 
     def __repr__(self):
-        args = [type_repr(self.type), self.content, self.name]
+        args = [self.type, self.content, self.name]
         while args and args[-1] is None:
             del args[-1]
         return "%s(%s)" % (self.__class__.__name__, ", ".join(map(repr, args)))
