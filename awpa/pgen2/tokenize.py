@@ -584,7 +584,6 @@ def generate_tokens(tt, readline):
 
     for indent in indents[1:]:                 # pop remaining indent levels
         yield (tt.DEDENT, '', (lnum, 0), (lnum, 0), '')
-    yield (tt.NEWLINE, '', (lnum, 0), (lnum, 0), '')
     yield (tt.ENDMARKER, '', (lnum, 0), (lnum, 0), '')
 
 if __name__ == '__main__':                     # testing
