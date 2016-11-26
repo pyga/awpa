@@ -13,6 +13,7 @@ fallback token code OP, but the parser needs the actual token code.
 """
 
 # Python imports
+import io
 import pickle
 
 
@@ -119,6 +120,24 @@ class Grammar(object):
         print("labels")
         pprint(self.labels)
         print("start", self.start)
+
+    def detect_future_features(self, source):
+        from .._utils import detect_future_features
+        return detect_future_features(self, source)
+
+    def generate_tokens(self, source):
+        from .tokenize import generate_tokens
+        return generate_tokens(self.token, io.StringIO(source).readline)
+
+    def parse_source(self, source, convert=None):
+        from .driver import Driver
+        if convert is None:
+            from ..pytree import convert
+        trailing_newline = not source or source.endswith('\n')
+        if not trailing_newline:
+            source += u'\n'
+        tree = Driver(self, convert=convert).parse_string(source)
+        return tree, trailing_newline
 
 
 # Map from operator to number (since tokenize doesn't do this)

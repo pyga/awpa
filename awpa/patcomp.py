@@ -15,25 +15,22 @@ import io
 import os
 
 # Fairly local imports
-from .pgen2 import driver, literals, token, tokenize, parse, grammar
+from .pgen2 import driver, literals, tokenize, parse
 
 # Really local imports
 from . import pytree
 from . import pygram
-
-# The pattern grammar file
-_PATTERN_GRAMMAR_FILE = os.path.join(os.path.dirname(__file__),
-                                     "PatternGrammar.txt")
 
 
 class PatternSyntaxError(Exception):
     pass
 
 
-def tokenize_wrapper(input):
+def tokenize_wrapper(grammar, input):
     """Tokenizes a string suppressing significant whitespace."""
+    token = grammar.token
     skip = {token.NEWLINE, token.INDENT, token.DEDENT}
-    tokens = tokenize.generate_tokens(io.StringIO(input).readline)
+    tokens = tokenize.generate_tokens(token, io.StringIO(input).readline)
     for quintuple in tokens:
         type, value, start, end, line_text = quintuple
         if type not in skip:
@@ -42,20 +39,23 @@ def tokenize_wrapper(input):
 
 class PatternCompiler(object):
 
-    def __init__(self, grammar_file=_PATTERN_GRAMMAR_FILE):
+    def __init__(self, pysyms):
         """Initializer.
 
         Takes an optional alternative filename for the pattern grammar.
         """
-        self.grammar = driver.load_grammar(grammar_file)
-        self.syms = pygram.Symbols(self.grammar)
-        self.pygrammar = pygram.python_grammar
-        self.pysyms = pygram.python_symbols
+        token, self.grammar, self.syms = pygram.load_grammar('pattern')
+        self.pysyms = pysyms
         self.driver = driver.Driver(self.grammar, convert=pattern_convert)
+        # Map named tokens to the type value for a LeafPattern
+        self.token_map = {"NAME": token.NAME,
+                          "STRING": token.STRING,
+                          "NUMBER": token.NUMBER,
+                          "TOKEN": None}
 
     def compile_pattern(self, input, debug=False, with_tree=False):
         """Compiles a pattern string to a nested pytree.*Pattern object."""
-        tokens = tokenize_wrapper(input)
+        tokens = tokenize_wrapper(self.grammar, input)
         try:
             root = self.driver.parse_tokens(tokens, debug=debug)
         except parse.ParseError as e:
@@ -70,6 +70,8 @@ class PatternCompiler(object):
 
         This is one big switch on the node type.
         """
+        token = self.grammar.token
+
         # XXX Optimize certain Wildcard-containing-Wildcard patterns
         # that can be merged
         if node.type == self.syms.Matcher:
@@ -137,20 +139,22 @@ class PatternCompiler(object):
         return pattern.optimize()
 
     def compile_basic(self, nodes, repeat=None):
+        token = self.grammar.token
+
         # Compile STRING | NAME [Details] | (...) | [...]
         assert len(nodes) >= 1
         node = nodes[0]
         if node.type == token.STRING:
             value = str(literals.evalString(node.value))
-            return pytree.LeafPattern(_type_of_literal(value), value)
+            return pytree.LeafPattern(_type_of_literal(self.grammar, value), value)
         elif node.type == token.NAME:
             value = node.value
             if value.isupper():
-                if value not in TOKEN_MAP:
+                if value not in self.token_map:
                     raise PatternSyntaxError("Invalid token: %r" % value)
                 if nodes[1:]:
                     raise PatternSyntaxError("Can't have details for token")
-                return pytree.LeafPattern(TOKEN_MAP[value])
+                return pytree.LeafPattern(self.token_map[value])
             else:
                 if value == "any":
                     type = None
@@ -172,24 +176,15 @@ class PatternCompiler(object):
         assert False, node
 
     def get_int(self, node):
-        assert node.type == token.NUMBER
+        assert node.type == self.grammar.token.NUMBER
         return int(node.value)
 
 
-# Map named tokens to the type value for a LeafPattern
-TOKEN_MAP = {"NAME": token.NAME,
-             "STRING": token.STRING,
-             "NUMBER": token.NUMBER,
-             "TOKEN": None}
-
-
-def _type_of_literal(value):
+def _type_of_literal(grammar, value):
     if value[0].isalpha():
-        return token.NAME
-    elif value in grammar.opmap:
-        return grammar.opmap[value]
+        return grammar.token.NAME
     else:
-        return None
+        return grammar.token.opmap.get(value)
 
 
 def pattern_convert(grammar, raw_node_info):
@@ -201,5 +196,5 @@ def pattern_convert(grammar, raw_node_info):
         return pytree.Leaf(type, value, context=context)
 
 
-def compile_pattern(pattern):
-    return PatternCompiler().compile_pattern(pattern)
+def compile_pattern(pysyms, pattern):
+    return PatternCompiler(pysyms).compile_pattern(pattern)

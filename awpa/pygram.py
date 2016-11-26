@@ -43,5 +43,12 @@ def load_grammar(which):
         token,
         pkg_resources.resource_filename(token.__name__, 'Grammar.txt'))
     gram.token = token
+    for attempted_start in ('file_input', 'Matcher'):
+        if attempted_start not in gram.symbol2number:
+            continue
+        gram.start = gram.symbol2number[attempted_start]
+        break
+    else:
+        raise RuntimeError('no start symbol found in', gram)
     symbols = Symbols(gram)
     return token, gram, symbols

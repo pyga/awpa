@@ -65,7 +65,7 @@ class Driver(object):
                     column = 0
                 continue
             if type == t.OP:
-                type = grammar.opmap[value]
+                type = t.opmap[value]
             if debug:
                 self.logger.debug("%s %r (prefix=%r)",
                                   t.tok_name[type], value, prefix)
