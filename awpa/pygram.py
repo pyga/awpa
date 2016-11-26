@@ -50,5 +50,5 @@ def load_grammar(which):
         break
     else:
         raise RuntimeError('no start symbol found in', gram)
-    symbols = Symbols(gram)
+    symbols = gram.symbols = Symbols(gram)
     return token, gram, symbols
