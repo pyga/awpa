@@ -196,5 +196,5 @@ def pattern_convert(grammar, raw_node_info):
         return pytree.Leaf(type, value, context=context)
 
 
-def compile_pattern(pysyms, pattern):
-    return PatternCompiler(pysyms).compile_pattern(pattern)
+def compile_pattern(pysyms, pattern, **kw):
+    return PatternCompiler(pysyms).compile_pattern(pattern, **kw)

@@ -27,7 +27,8 @@ class BottomMatcher(object):
     """The main matcher class. After instantiating the patterns should
     be added using the add_fixer method"""
 
-    def __init__(self):
+    def __init__(self, grammar):
+        self.grammar = grammar
         self.match = set()
         self.root = BMNode()
         self.nodes = [self.root]
@@ -39,12 +40,15 @@ class BottomMatcher(object):
         to the matcher(a common Aho-Corasick automaton). The fixer is
         appended on the matching states and called when they are
         reached"""
-        self.fixers.append(fixer)
-        tree = reduce_tree(fixer.pattern_tree)
+        self.add_pattern_by_key(fixer.pattern_tree, fixer)
+
+    def add_pattern_by_key(self, pattern, key):
+        self.fixers.append(key)
+        tree = reduce_tree(self.grammar, pattern)
         linear = tree.get_linear_subpattern()
         match_nodes = self.add(linear, start=self.root)
         for match_node in match_nodes:
-            match_node.fixers.append(fixer)
+            match_node.fixers.append(key)
 
     def add(self, pattern, start):
         "Recursively adds a linear pattern to the AC automaton"

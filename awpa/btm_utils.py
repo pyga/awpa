@@ -1,13 +1,9 @@
 "Utility functions used by the btm_matcher module"
 
-from . import pytree
-from .pgen2 import grammar, token
-from .pygram import pattern_symbols, python_symbols
+import functools
 
-syms = pattern_symbols
-pysyms = python_symbols
-tokens = grammar.opmap
-token_labels = token
+from . import pygram, pytree
+from .pgen2 import grammar
 
 TYPE_ANY = -1
 TYPE_ALTERNATIVES = -2
@@ -18,7 +14,8 @@ class MinNode(object):
     pattern tree during the conversion to sets of leaf-to-root
     subpatterns"""
 
-    def __init__(self, type=None, name=None):
+    def __init__(self, name_token, type=None, name=None):
+        self.name_token = name_token
         self.type = type
         self.name = name
         self.children = []
@@ -63,7 +60,7 @@ class MinNode(object):
                     subp = None
                     break
 
-            if node.type == token_labels.NAME and node.name:
+            if node.type == self.name_token and node.name:
                 #in case of type=name, use the name instead
                 subp.append(node.name)
             else:
@@ -101,13 +98,19 @@ class MinNode(object):
         if not self.children:
             yield self
 
-def reduce_tree(node, parent=None):
+def reduce_tree(grammar, node, parent=None):
     """
     Internal function. Reduces a compiled pattern tree to an
     intermediate representation suitable for feeding the
     automaton. This also trims off any optional pattern elements(like
     [a], a*).
     """
+
+    _, pgram, syms = pygram.load_grammar('pattern')
+    pysyms = grammar.symbols
+    tokens = grammar.token.opmap
+    token_labels = grammar.token
+    make_node = functools.partial(MinNode, token_labels.NAME)
 
     new_node = None
     #switch on the node type
@@ -119,23 +122,23 @@ def reduce_tree(node, parent=None):
         #2 cases
         if len(node.children) <= 2:
             #just a single 'Alternative', skip this node
-            new_node = reduce_tree(node.children[0], parent)
+            new_node = reduce_tree(grammar, node.children[0], parent)
         else:
             #real alternatives
-            new_node = MinNode(type=TYPE_ALTERNATIVES)
+            new_node = make_node(type=TYPE_ALTERNATIVES)
             #skip odd children('|' tokens)
             for child in node.children:
                 if node.children.index(child)%2:
                     continue
-                reduced = reduce_tree(child, new_node)
+                reduced = reduce_tree(grammar, child, new_node)
                 if reduced is not None:
                     new_node.children.append(reduced)
     elif node.type == syms.Alternative:
         if len(node.children) > 1:
 
-            new_node = MinNode(type=TYPE_GROUP)
+            new_node = make_node(type=TYPE_GROUP)
             for child in node.children:
-                reduced = reduce_tree(child, new_node)
+                reduced = reduce_tree(grammar, child, new_node)
                 if reduced:
                     new_node.children.append(reduced)
             if not new_node.children:
@@ -143,13 +146,13 @@ def reduce_tree(node, parent=None):
                 new_node = None
 
         else:
-            new_node = reduce_tree(node.children[0], parent)
+            new_node = reduce_tree(grammar, node.children[0], parent)
 
     elif node.type == syms.Unit:
         if (isinstance(node.children[0], pytree.Leaf) and
             node.children[0].value == '('):
             #skip parentheses
-            return reduce_tree(node.children[1], parent)
+            return reduce_tree(grammar, node.children[1], parent)
         if ((isinstance(node.children[0], pytree.Leaf) and
                node.children[0].value == '[')
                or
@@ -192,23 +195,23 @@ def reduce_tree(node, parent=None):
         if name_leaf.type == token_labels.NAME:
             #(python) non-name or wildcard
             if name_leaf.value == 'any':
-                new_node = MinNode(type=TYPE_ANY)
+                new_node = make_node(type=TYPE_ANY)
             else:
                 if hasattr(token_labels, name_leaf.value):
-                    new_node = MinNode(type=getattr(token_labels, name_leaf.value))
+                    new_node = make_node(type=getattr(token_labels, name_leaf.value))
                 else:
-                    new_node = MinNode(type=getattr(pysyms, name_leaf.value))
+                    new_node = make_node(type=getattr(pysyms, name_leaf.value))
 
         elif name_leaf.type == token_labels.STRING:
             #(python) name or character; remove the apostrophes from
             #the string value
             name = name_leaf.value.strip("'")
             if name in tokens:
-                new_node = MinNode(type=tokens[name])
+                new_node = make_node(type=tokens[name])
             else:
-                new_node = MinNode(type=token_labels.NAME, name=name)
+                new_node = make_node(type=token_labels.NAME, name=name)
         elif name_leaf.type == syms.Alternatives:
-            new_node = reduce_tree(alternatives_node, parent)
+            new_node = reduce_tree(grammar, alternatives_node, parent)
 
         #handle repeaters
         if has_repeater:
@@ -227,7 +230,7 @@ def reduce_tree(node, parent=None):
         if details_node and new_node is not None:
             for child in details_node.children[1:-1]:
                 #skip '<', '>' markers
-                reduced = reduce_tree(child, new_node)
+                reduced = reduce_tree(grammar, child, new_node)
                 if reduced is not None:
                     new_node.children.append(reduced)
     if new_node:
