@@ -31,7 +31,23 @@ def ensure_token(token, name):
     token.tok_name[new_val] = name
 
 
-def load_grammar(which):
+_DEFAULT_EQUIVALENCES = (
+    ('atom_expr', 'power'),
+)
+
+
+def add_equivalence(syms, choices):
+    for choice in choices:
+        value = getattr(syms, choice, None)
+        if value is not None:
+            break
+    else:
+        return
+
+    setattr(syms, '_or_'.join(choices), value)
+
+
+def load_grammar(which, equivalences=_DEFAULT_EQUIVALENCES):
     token = importlib.import_module('awpa.gram_{}.token'.format(which))
     if not getattr(token, '_loaded', False):
         ensure_token(token, 'COMMENT')
@@ -51,4 +67,6 @@ def load_grammar(which):
     else:
         raise RuntimeError('no start symbol found in', gram)
     symbols = gram.symbols = Symbols(gram)
+    for equivalence in equivalences:
+        add_equivalence(symbols, equivalence)
     return token, gram, symbols
