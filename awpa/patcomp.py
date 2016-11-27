@@ -18,8 +18,7 @@ import os
 from .pgen2 import driver, literals, tokenize, parse
 
 # Really local imports
-from . import pytree
-from . import pygram
+from . import load_grammar, pytree
 
 
 class PatternSyntaxError(Exception):
@@ -39,15 +38,16 @@ def tokenize_wrapper(grammar, input):
 
 class PatternCompiler(object):
 
-    def __init__(self, pysyms):
+    def __init__(self, pygram):
         """Initializer.
 
         Takes an optional alternative filename for the pattern grammar.
         """
-        token, self.grammar, self.syms = pygram.load_grammar('pattern')
-        self.pysyms = pysyms
+        _, self.grammar, self.syms = load_grammar('pattern')
+        self.pygram = pygram
         self.driver = driver.Driver(self.grammar, convert=pattern_convert)
         # Map named tokens to the type value for a LeafPattern
+        token = self.pygram.token
         self.token_map = {"NAME": token.NAME,
                           "STRING": token.STRING,
                           "NUMBER": token.NUMBER,
@@ -146,7 +146,7 @@ class PatternCompiler(object):
         node = nodes[0]
         if node.type == token.STRING:
             value = str(literals.evalString(node.value))
-            return pytree.LeafPattern(_type_of_literal(self.grammar, value), value)
+            return pytree.LeafPattern(_type_of_literal(self.pygram, value), value)
         elif node.type == token.NAME:
             value = node.value
             if value.isupper():
@@ -159,7 +159,7 @@ class PatternCompiler(object):
                 if value == "any":
                     type = None
                 elif not value.startswith("_"):
-                    type = getattr(self.pysyms, value, None)
+                    type = getattr(self.pygram.symbols, value, None)
                     if type is None:
                         raise PatternSyntaxError("Invalid symbol: %r" % value)
                 if nodes[1:]: # Details present
@@ -196,5 +196,5 @@ def pattern_convert(grammar, raw_node_info):
         return pytree.Leaf(type, value, context=context)
 
 
-def compile_pattern(pysyms, pattern, **kw):
-    return PatternCompiler(pysyms).compile_pattern(pattern, **kw)
+def compile_pattern(pygram, pattern, **kw):
+    return PatternCompiler(pygram).compile_pattern(pattern, **kw)
