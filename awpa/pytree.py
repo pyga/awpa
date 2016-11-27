@@ -193,7 +193,7 @@ class Base(object):
 
     if sys.version_info < (3, 0):
         def __str__(self):
-            return str(self).encode("ascii")
+            return unicode(self).encode("ascii")
 
 class Node(Base):
 
