@@ -1,3 +1,6 @@
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 """A bottom-up tree matching algorithm implementation meant to speed
 up 2to3's matching process. After the tree patterns are reduced to
 their rarest linear path, a linear Aho-Corasick automaton is

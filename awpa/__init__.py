@@ -1,3 +1,6 @@
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 from .pygram import load_grammar
 from ._utils import (
     decode_bytes_using_source_encoding, read_file_using_source_encoding)

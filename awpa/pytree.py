@@ -1,3 +1,6 @@
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 # Copyright 2006 Google, Inc. All Rights Reserved.
 # Licensed to PSF under a Contributor Agreement.
 

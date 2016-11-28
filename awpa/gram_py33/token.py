@@ -1,3 +1,6 @@
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 """Token constants (from "token.h")."""
 
 __all__ = ['tok_name', 'ISTERMINAL', 'ISNONTERMINAL', 'ISEOF']
@@ -81,5 +84,3 @@ def ISNONTERMINAL(x):
 
 def ISEOF(x):
     return x == ENDMARKER
-
-

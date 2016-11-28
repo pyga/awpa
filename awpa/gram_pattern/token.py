@@ -1,4 +1,5 @@
-#! /usr/bin/env python3
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
 
 """Token constants (from "token.h")."""
 

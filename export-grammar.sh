@@ -1,4 +1,7 @@
 #!/bin/sh -eux
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 export GIT_DIR="$1/.git"
 shift
 for v in "$@"; do

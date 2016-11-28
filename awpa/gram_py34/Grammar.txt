@@ -1,3 +1,6 @@
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 # Grammar for Python
 
 # Note:  Changing the grammar specified in this file will most likely
@@ -117,7 +120,7 @@ dictorsetmaker: ( (test ':' test (comp_for | (',' test ':' test)* [','])) |
 classdef: 'class' NAME ['(' [arglist] ')'] ':' suite
 
 arglist: (argument ',')* (argument [',']
-                         |'*' test (',' argument)* [',' '**' test] 
+                         |'*' test (',' argument)* [',' '**' test]
                          |'**' test)
 # The reason that keywords are test nodes instead of NAME is that using NAME
 # results in an ambiguity. ast.c makes sure it's a NAME.

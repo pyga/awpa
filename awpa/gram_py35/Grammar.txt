@@ -1,3 +1,6 @@
+# Part of the awpa package: https://github.com/habnabit/awpa
+# See LICENSE for copyright.
+
 # Grammar for Python
 
 # Note:  Changing the grammar specified in this file will most likely
