@@ -1,5 +1,3 @@
-.. include:: <isonum.txt>
-
 ====
 awpa
 ====
@@ -15,7 +13,7 @@ copyright Aaron Gallagher and distributed under the MIT license.
 awpa
 ----
 
-Copyright |copy| 2016 Aaron Gallagher
+Copyright © 2016 Aaron Gallagher
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -41,9 +39,9 @@ lib2to3
 
 Original files copyright one or more of:
 
-- Copyright |copy| 2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation. All rights reserved.
-- Copyright |copy| 2004-2005 Elemental Security, Inc. All Rights Reserved. Licensed to PSF under a Contributor Agreement.
-- Copyright |copy| 2006 Google, Inc. All Rights Reserved. Licensed to PSF under a Contributor Agreement.
+- Copyright © 2001, 2002, 2003, 2004, 2005, 2006 Python Software Foundation. All rights reserved.
+- Copyright © 2004-2005 Elemental Security, Inc. All Rights Reserved. Licensed to PSF under a Contributor Agreement.
+- Copyright © 2006 Google, Inc. All Rights Reserved. Licensed to PSF under a Contributor Agreement.
 
 Modifications
 ~~~~~~~~~~~~~
