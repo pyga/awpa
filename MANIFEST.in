@@ -1,3 +1,4 @@
 include versioneer.py
 include awpa/_version.py
 recursive-include awpa Grammar.txt
+include LICENSE LICENSE.rst
