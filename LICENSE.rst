@@ -47,7 +47,7 @@ Modifications
 ~~~~~~~~~~~~~
 
 Modifications to **lib2to3** are all recorded with the git version control
-system, and available online at `<https://github.com/habnabit/awpa>`_.
+system, and available online at `<https://github.com/pyga/awpa>`_.
 
 
 PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2

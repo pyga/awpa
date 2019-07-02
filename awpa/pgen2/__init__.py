@@ -1,4 +1,4 @@
-# Part of the awpa package: https://github.com/habnabit/awpa
+# Part of the awpa package: https://github.com/pyga/awpa
 # See LICENSE for copyright.
 
 # Copyright 2004-2005 Elemental Security, Inc. All Rights Reserved.
