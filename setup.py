@@ -1,4 +1,4 @@
-# Part of the awpa package: https://github.com/habnabit/awpa
+# Part of the awpa package: https://github.com/pyga/awpa
 # See LICENSE for copyright.
 
 from setuptools import setup, find_packages
@@ -16,7 +16,7 @@ setup(
     long_description=long_description,
     author='Aaron Gallagher',
     author_email='_@habnab.it',
-    url='https://github.com/habnabit/awpa',
+    url='https://github.com/pyga/awpa',
     license='PSF/MIT',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),

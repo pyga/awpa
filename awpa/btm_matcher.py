@@ -1,4 +1,4 @@
-# Part of the awpa package: https://github.com/habnabit/awpa
+# Part of the awpa package: https://github.com/pyga/awpa
 # See LICENSE for copyright.
 
 """A bottom-up tree matching algorithm implementation meant to speed
