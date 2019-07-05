@@ -16,7 +16,7 @@ for v in "$@"; do
     mkdir -p "$gramdir"
     touch "$gramdir/__init__.py"
     echo "$LICENSE" > "$gramdir/Grammar.txt"
-    git show origin/"$v":Grammar/Grammar >> "$gramdir/Grammar.txt"
+    git show cpython/"$v":Grammar/Grammar >> "$gramdir/Grammar.txt"
     echo "$LICENSE" > "$gramdir/token.py"
-    git show origin/"$v":Lib/token.py | sed '/^def .*main/,$d' >> "$gramdir/token.py"
+    git show cpython/"$v":Lib/token.py | sed '/^def .*main/,$d' >> "$gramdir/token.py"
 done
