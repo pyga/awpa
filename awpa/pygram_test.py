@@ -10,7 +10,9 @@ from awpa.pgen2 import tokenize
 from awpa import pygram, pytree
 
 
-@pytest.fixture(params=('py27', 'py33', 'py34', 'py35', 'pattern'))
+@pytest.fixture(
+    params=('py27', 'py33', 'py34', 'py35', 'py36', 'py37', 'pattern'),
+)
 def grammar_parts(request):
     return pygram.load_grammar(request.param)
 

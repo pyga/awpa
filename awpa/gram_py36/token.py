@@ -87,3 +87,5 @@ def ISNONTERMINAL(x):
 
 def ISEOF(x):
     return x == ENDMARKER
+
+
